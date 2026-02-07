@@ -3,6 +3,7 @@
  * 
  * # insmod ch368_io.ko
  * # mknod /dev/ch368_io c <major> 0
+ * # ./led_blink
  *
  */
 
