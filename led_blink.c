@@ -5,7 +5,10 @@
 #include <time.h>
 
 // SCS, SCL control
-static char data[] = { 0xfd, 0xfe, 0xff };
+static char data[] = { 0x7f, 0xfd, 0xfe, 0xff };
+//static char data[] = { 0x7f, 0xff };
+//static char data[] = { 0xfd, 0xff }; 
+//static char data[] = { 0xfe, 0xff };
 
 int main (int ac, char **av)
 {
@@ -35,7 +38,7 @@ int main (int ac, char **av)
     sleep (1);
 
     i++;
-    if (i == 3)
+    if (i == sizeof(data))
       i = 0;
   }
   
