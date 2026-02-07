@@ -1,9 +1,8 @@
 /*
- * PCI demo driver (IO based)
+ * PCI demo driver (IO based) for CH368 board
  * 
- * # insmod pcidemo_io.ko
- * # mknod /dev/pcidemo c <major> 0
- * # dd bs=4 count=1 if=/dev/pcidemo of=data.file
+ * # insmod ch368_io.ko
+ * # mknod /dev/ch368_io c <major> 0
  *
  */
 

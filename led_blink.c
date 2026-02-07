@@ -12,7 +12,7 @@ int main (int ac, char **av)
   int fd, i = 0;
   char c;
   
-  fd = open ("/dev/pcidemo", O_RDWR);
+  fd = open ("/dev/ch368_io", O_RDWR);
   if (fd < 0) {
     perror ("open");
     exit (1);
