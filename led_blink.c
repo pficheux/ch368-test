@@ -4,7 +4,7 @@
 #include <fcntl.h>
 #include <time.h>
 
-// SCS, SCL control
+// SDX, SCS, SCL control
 static char data[] = { 0x7f, 0xfd, 0xfe, 0xff };
 //static char data[] = { 0x7f, 0xff };
 //static char data[] = { 0xfd, 0xff }; 
