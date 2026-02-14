@@ -3,7 +3,7 @@ driver/
 ch368_io.c	I/O driver for BAR0
 led_blink.c	Led control for SDX, SCL
 
-wch_demo/
+wch_demo/	demos for WCH driver (https://github.com/WCHSoftGroup/ch36x_linux.git)
 
 l1_l4.c		L1-L4 control with WCH driver and library
 
