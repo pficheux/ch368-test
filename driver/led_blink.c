@@ -7,7 +7,7 @@
 // SDX, SCS, SCL control
 static char data[] = { 0xff, 0x7f, 0xfd, 0xfe, 0xff };
 //static char data[] = { 0x7f, 0xff };
-static char L1_L4_data[] = { 0x00, 0xff }; // for L1 -> L4
+static char L1_L4_data[] = { 0x0f, 0x0e, 0x0d, 0x0b, 0x07, 0x0f }; // for L1 -> L4
 //static char data[] = { 0xfd, 0xff }; 
 //static char data[] = { 0xfe, 0xff };
 //static char data[] = { 0xfb, 0xff };
@@ -56,17 +56,17 @@ int main (int ac, char **av)
     else
       printf ("r_value[%d] = %02x\n", i, c & 0xff);
 
-    sleep (1);
+    usleep (500000);
 
     i++;
     if (i == sizeof(data)) {
-      // L1 -> L4 -> send 0x00 or 0xff at offset 0
+      // L1 -> L4 -> send 0x00 or 0x0f at offset 0
       if (lseek (fd, 0, SEEK_SET) < 0) {
 	perror ("lseek");
 	return 1;
       }
 
-      for (j = 0 ; j < 2 ; j++) {
+      for (j = 0 ; j < sizeof(L1_L4_data) ; j++) {
 	if (write (fd, &L1_L4_data[j], 1) < 0) {
 	  perror ("write");
 	  return 1;
