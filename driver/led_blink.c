@@ -16,11 +16,16 @@ int main (int ac, char **av)
 {
   int fd, i = 0, j;
   char c;
+
+  if (ac == 1) {
+    fprintf (stderr, "Usage: %s <device-node>\n", av[0]);
+    return 1;
+  }
   
-  fd = open ("/dev/ch368_io", O_RDWR);
+  fd = open (av[1], O_RDWR);
   if (fd < 0) {
     perror ("open");
-    exit (1);
+    return 1;
   }
 
 
@@ -28,12 +33,12 @@ int main (int ac, char **av)
     /* SDX, SCS, SCL -> offset 0xe8 */
     if (lseek (fd, 0xe8, SEEK_SET) < 0) {
       perror ("lseek");
-      exit (1);
+      return 1;
     }
 
     if (write (fd, &data[i], 1) < 0) {
       perror ("write");
-      exit (1);
+      return 1;
     }
     else
       printf ("w_value[%d] = %02x\n", i, data[i] & 0xff);
@@ -41,12 +46,12 @@ int main (int ac, char **av)
     /* SDX, SCS, SCL -> offset 0xe8 */
     if (lseek (fd, 0xe8, SEEK_SET) < 0) {
       perror ("lseek");
-      exit (1);
+      return 1;
     }
 
     if (read (fd, &c, 1) < 0) {
       perror ("read");
-      exit (1);
+      return 1;
     }
     else
       printf ("r_value[%d] = %02x\n", i, c & 0xff);
@@ -58,19 +63,18 @@ int main (int ac, char **av)
       // L1 -> L4 -> send 0x00 or 0xff at offset 0
       if (lseek (fd, 0, SEEK_SET) < 0) {
 	perror ("lseek");
-	exit (1);
+	return 1;
       }
 
       for (j = 0 ; j < 2 ; j++) {
 	if (write (fd, &L1_L4_data[j], 1) < 0) {
-	perror ("write");
-	exit (1);
+	  perror ("write");
+	  return 1;
 	}
 	else
 	  printf ("w_value[%d] = %02x\n", i, L1_L4_data[j] & 0xff);
 
 	usleep (500000);
-	//sleep (1);
       }
 
       i = 0;
