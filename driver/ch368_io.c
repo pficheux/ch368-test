@@ -23,7 +23,7 @@ MODULE_DESCRIPTION("pcidemo_io");
 MODULE_AUTHOR("Pierre Ficheux");
 MODULE_LICENSE("GPL");
 
-#define BUF_SIZE 64
+#define BUF_SIZE 256
 
 /*
  * Arguments
@@ -97,10 +97,10 @@ static ssize_t pcidemo_io_read(struct file *file, char *buf, size_t count, loff_
 
   /* Check for overflow */
   real = min((int)data->iolen - (int)*ppos, (int)count);
-  pr_info ("real= %d\n", real);
-  
-  port = data->iobase + 0xe8;
-    
+
+  pr_info ("ppos= %x\n", (int)*ppos);
+  port = data->iobase + *ppos;
+
   /* Copy data from board */
   if (real) {
     /*
@@ -114,7 +114,6 @@ static ssize_t pcidemo_io_read(struct file *file, char *buf, size_t count, loff_
       *(kbuf + j) = inb(port + j);
     }
 
-      
     if (copy_to_user(buf, kbuf, real))
       return -EFAULT;
   }
@@ -123,8 +122,6 @@ static ssize_t pcidemo_io_read(struct file *file, char *buf, size_t count, loff_
   //  pr_info ("port= %x\n", inl(port));
 
   printk(KERN_INFO "pcidemo_io: read %d/%d chars at offset %d from I/O memory bank %d\n", real, (int)count, (int)*ppos, bank);
-
-  *ppos += real;
 
   return real;
 }
@@ -154,9 +151,9 @@ static ssize_t pcidemo_io_write(struct file *file, const char *buf, size_t count
   /* Check for overflow */
   real = min((int)data->iolen - (int)*ppos, (int)count);
   pr_info ("real= %d\n", real);
-
-  // base offset is 0xe8
-  port = data->iobase + 0xe8;
+  
+  // set base offset
+  port = data->iobase + *ppos;
     
   /* Copy data to board */
   if (copy_from_user(kbuf, buf, real))
@@ -169,9 +166,35 @@ static ssize_t pcidemo_io_write(struct file *file, const char *buf, size_t count
   
   printk(KERN_INFO "pcidemo_io: write %d/%d chars at offset %d from I/O memory bank %d\n", real, (int)count, (int)*ppos, bank);
 
-  *ppos += real;
-
   return real;
+}
+
+loff_t pcidemo_io_llseek(struct file *file, loff_t off, int whence)
+{
+  loff_t newpos = 0;
+
+  switch(whence) {
+  case 0: /* SEEK_SET */
+    newpos = off;
+    break;
+
+  case 1: /* SEEK_CUR */
+    newpos = file->f_pos + off;
+    break;
+
+  case 2: /* SEEK_END */
+    newpos = BUF_SIZE + off;
+    break;
+
+  default: /* can't happen */
+    return -EINVAL;
+  }
+  if (newpos < 0 || newpos > BUF_SIZE)
+    return -EINVAL;
+
+  file->f_pos = newpos;
+  
+  return newpos;
 }
 
 static int pcidemo_io_open(struct inode *inode, struct file *file)
@@ -211,6 +234,7 @@ static struct file_operations pcidemo_io_fops = {
   .read =	pcidemo_io_read,
   .write =	pcidemo_io_write,
   .open =	pcidemo_io_open,
+  .llseek =	pcidemo_io_llseek,
   .release =	pcidemo_io_release,
 };
 
