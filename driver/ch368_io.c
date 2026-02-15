@@ -68,7 +68,7 @@ static irqreturn_t ch368_io_irq_handler(int irq, void *dev_id)
 {
   struct ch368_io_struct *data = (struct ch368_io_struct *)dev_id;
 
-  printk(KERN_INFO "ch368_io: interrupt from device %d\n", data->minor);
+  pr_info("ch368_io: interrupt from device %d\n", data->minor);
 
   return IRQ_HANDLED;
 }
@@ -94,7 +94,7 @@ static ssize_t ch368_io_read(struct file *file, char *buf, size_t count, loff_t 
 
   /* No bank found */
   if (bank == DEVICE_COUNT_RESOURCE) {
-    printk(KERN_INFO "ch368_io: no I/O memory bank to read\n");
+    pr_info("ch368_io: no I/O memory bank to read\n");
     return -ENXIO;
   }
 
@@ -115,7 +115,7 @@ static ssize_t ch368_io_read(struct file *file, char *buf, size_t count, loff_t 
       return -EFAULT;
   }
   
-  printk(KERN_INFO "ch368_io: read %d/%d chars at offset %d from I/O memory bank %d\n", real, (int)count, (int)*ppos, bank);
+  pr_info("ch368_io: read %d/%d chars at offset %d from I/O memory bank %d\n", real, (int)count, (int)*ppos, bank);
 
   return real;
 }
@@ -138,7 +138,7 @@ static ssize_t ch368_io_write(struct file *file, const char *buf, size_t count, 
 
   /* No bank found */
   if (bank == DEVICE_COUNT_RESOURCE) {
-    printk(KERN_INFO "ch368_io: no I/O memory bank to read\n");
+    pr_info("ch368_io: no I/O memory bank to read\n");
     return -ENXIO;
   }
 
@@ -159,7 +159,7 @@ static ssize_t ch368_io_write(struct file *file, const char *buf, size_t count, 
     outb(*(kbuf+j), port + j);
   }
   
-  printk(KERN_INFO "ch368_io: write %d/%d chars at offset %d from I/O memory bank %d\n", real, (int)count, (int)*ppos, bank);
+  pr_info("ch368_io: write %d/%d chars at offset %d from I/O memory bank %d\n", real, (int)count, (int)*ppos, bank);
 
   return real;
 }
@@ -210,7 +210,7 @@ static int ch368_io_open(struct inode *inode, struct file *file)
     }
   }
 
-  printk(KERN_WARNING "ch368_io: minor %d not found\n", minor);
+  pr_warn("ch368_io: minor %d not found\n", minor);
 
   return -ENODEV;
 }
@@ -243,13 +243,13 @@ static int ch368_io_probe(struct pci_dev *dev, const struct pci_device_id *ent)
   static int minor = 0;
   struct device *device;
 
-  printk(KERN_INFO "ch368_io: found %x:%x\n", ent->vendor, ent->device);
-  printk(KERN_INFO "ch368_io: using major %d and minor %d for this device\n", major, minor);
+  pr_info("ch368_io: found %x:%x\n", ent->vendor, ent->device);
+  pr_info("ch368_io: using major %d and minor %d for this device\n", major, minor);
 
   /* Allocate a private structure and reference it as driver's data */
   data = (struct ch368_io_struct *)kmalloc(sizeof(struct ch368_io_struct), GFP_KERNEL);
   if (data == NULL) {
-    printk(KERN_INFO "ch368_io: unable to allocate private structure\n");
+    pr_info("ch368_io: unable to allocate private structure\n");
 
     ret = -ENOMEM;
     goto cleanup_kmalloc;
@@ -271,7 +271,7 @@ static int ch368_io_probe(struct pci_dev *dev, const struct pci_device_id *ent)
   /* Initialize device before it's used by the driver */
   ret = pci_enable_device(dev);
   if (ret < 0) {
-    printk(KERN_WARNING "ch368_io: unable to initialize PCI device\n");
+    pr_warn("ch368_io: unable to initialize PCI device\n");
 
     goto cleanup_pci_enable;
   }
@@ -279,7 +279,7 @@ static int ch368_io_probe(struct pci_dev *dev, const struct pci_device_id *ent)
   /* Reserve PCI I/O and memory resources */
   ret = pci_request_regions(dev, "ch368_io");
   if (ret < 0) {
-    printk(KERN_WARNING "ch368_io: unable to reserve PCI resources\n");
+    pr_warn("ch368_io: unable to reserve PCI resources\n");
 
     goto cleanup_regions;
   }
@@ -294,12 +294,12 @@ static int ch368_io_probe(struct pci_dev *dev, const struct pci_device_id *ent)
     if (pci_resource_start(dev, i) == 0)
       continue;
 
-    printk(KERN_INFO "ch368_io: BAR %d (%#08x-%#08x), len=%d, flags=%#08x\n", i, (u32) pci_resource_start(dev, i), (u32) pci_resource_end(dev, i), (u32) pci_resource_len(dev, i), (u32) pci_resource_flags(dev, i));
+    pr_info("ch368_io: BAR %d (%#08x-%#08x), len=%d, flags=%#08x\n", i, (u32) pci_resource_start(dev, i), (u32) pci_resource_end(dev, i), (u32) pci_resource_len(dev, i), (u32) pci_resource_flags(dev, i));
 
     if (pci_resource_flags(dev, i) & IORESOURCE_IO) {
       data->iobase = pci_resource_start(dev, i);
       data->iolen = pci_resource_len(dev, i);
-      printk(KERN_INFO "ch368_io: BAR %d is IO_RESOURCE_IO @ %x!\n", i, data->iobase);
+      pr_info("ch368_io: BAR %d is IO_RESOURCE_IO @ %x!\n", i, data->iobase);
 
       break;
     }
@@ -309,13 +309,13 @@ static int ch368_io_probe(struct pci_dev *dev, const struct pci_device_id *ent)
   if (dev->pin) {
     ret = request_irq(dev->irq, ch368_io_irq_handler, IRQF_SHARED, "ch368_io", data);
     if (ret < 0) {
-      printk(KERN_WARNING "ch368_io: unable to register irq handler\n");
+      pr_warn("ch368_io: unable to register irq handler\n");
 
       goto cleanup_irq;
     }
   }
   else
-    printk(KERN_INFO "ch368_io: no IRQ!\n");
+    pr_info("ch368_io: no IRQ!\n");
 
   /* Link the new data structure with others */
   list_add_tail(&data->link, &ch368_io_list);
@@ -349,7 +349,7 @@ static void ch368_io_remove(struct pci_dev *dev)
 
   kfree(data);
 
-  printk(KERN_INFO "ch368_io: device removed\n");
+  pr_info("ch368_io: device removed\n");
 }
 
 static struct pci_driver ch368_io_driver = {
@@ -369,7 +369,7 @@ static int __init ch368_io_init(void)
   /* Register the device driver */
   ret = register_chrdev(major, "ch368_io", &ch368_io_fops);
   if (ret < 0) {
-    printk(KERN_WARNING "ch368_io: unable to get a major\n");
+    pr_warn("ch368_io: unable to get a major\n");
 
     return ret;
   }
@@ -391,7 +391,7 @@ static int __init ch368_io_init(void)
   /* Register PCI driver */
   ret = pci_register_driver(&ch368_io_driver);
   if (ret < 0) {
-    printk(KERN_WARNING "ch368_io: unable to register PCI driver\n");
+    pr_warn("ch368_io: unable to register PCI driver\n");
     unregister_chrdev(major, "ch368_io");
 
     return ret;
