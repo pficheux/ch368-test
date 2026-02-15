@@ -78,25 +78,10 @@ static irqreturn_t ch368_io_irq_handler(int irq, void *dev_id)
  */
 static ssize_t ch368_io_read(struct file *file, char *buf, size_t count, loff_t *ppos)
 {
-  int i, j, bank = DEVICE_COUNT_RESOURCE;
+  int i, real;
   struct ch368_io_struct *data = file->private_data;
   unsigned char kbuf[BUF_SIZE];
   unsigned int port;
-  int real;
-
-  /* Find the first remapped I/O memory bank to read */
-  for (i = 0; i < DEVICE_COUNT_RESOURCE; i++) {
-    if (data->iobase != 0) {
-      bank = i;
-      break;
-    }
-  }
-
-  /* No bank found */
-  if (bank == DEVICE_COUNT_RESOURCE) {
-    pr_info("ch368_io: no I/O memory bank to read\n");
-    return -ENXIO;
-  }
 
   /* Check for overflow */
   real = min((int)data->iolen - (int)*ppos, (int)count);
@@ -106,42 +91,27 @@ static ssize_t ch368_io_read(struct file *file, char *buf, size_t count, loff_t 
 
   /* Copy data from board */
   if (real) {
-    for (j = 0; j < real; j += sizeof(char)) {
-      pr_info ("port[%d] = %x\n", j, inb(port+j));
-      *(kbuf + j) = inb(port + j);
+    for (i = 0; i < real; i += sizeof(char)) {
+      pr_info ("port[%d] = %x\n", i, inb(port+i));
+      *(kbuf + i) = inb(port + i);
     }
 
     if (copy_to_user(buf, kbuf, real))
       return -EFAULT;
   }
   
-  pr_info("ch368_io: read %d/%d chars at offset %d from I/O memory bank %d\n", real, (int)count, (int)*ppos, bank);
+  pr_info("ch368_io: read %d/%d chars at offset %d from I/O memory\n", real, (int)count, (int)*ppos);
 
   return real;
 }
 
 static ssize_t ch368_io_write(struct file *file, const char *buf, size_t count, loff_t *ppos)
 {
-  int i, j, bank = DEVICE_COUNT_RESOURCE;
+  int i, real;
   struct ch368_io_struct *data = file->private_data;
   unsigned char kbuf[BUF_SIZE];
   unsigned int port;
-  int real;
-
-  /* Find the first remapped I/O memory bank to read */
-  for (i = 0; i < DEVICE_COUNT_RESOURCE; i++) {
-    if (data->iobase != 0) {
-      bank = i;
-      break;
-    }
-  }
-
-  /* No bank found */
-  if (bank == DEVICE_COUNT_RESOURCE) {
-    pr_info("ch368_io: no I/O memory bank to read\n");
-    return -ENXIO;
-  }
-
+  
   /* Check for overflow */
   real = min((int)data->iolen - (int)*ppos, (int)count);
   pr_info ("real= %d\n", real);
@@ -154,12 +124,12 @@ static ssize_t ch368_io_write(struct file *file, const char *buf, size_t count, 
   if (copy_from_user(kbuf, buf, real))
     return -EFAULT;
 
-  for (j = 0; j < real; j += sizeof(char)) {
-    pr_info ("writing 0x%x @ offset %d\n", *(kbuf+j), j);
-    outb(*(kbuf+j), port + j);
+  for (i = 0; i < real; i += sizeof(char)) {
+    pr_info ("writing 0x%x @ offset %d\n", *(kbuf+i), i);
+    outb(*(kbuf+i), port + i);
   }
   
-  pr_info("ch368_io: write %d/%d chars at offset %d from I/O memory bank %d\n", real, (int)count, (int)*ppos, bank);
+  pr_info("ch368_io: write %d/%d chars at offset %d from I/O memory\n", real, (int)count, (int)*ppos);
 
   return real;
 }
@@ -250,7 +220,6 @@ static int ch368_io_probe(struct pci_dev *dev, const struct pci_device_id *ent)
   data = (struct ch368_io_struct *)kmalloc(sizeof(struct ch368_io_struct), GFP_KERNEL);
   if (data == NULL) {
     pr_info("ch368_io: unable to allocate private structure\n");
-
     ret = -ENOMEM;
     goto cleanup_kmalloc;
   }
@@ -284,10 +253,9 @@ static int ch368_io_probe(struct pci_dev *dev, const struct pci_device_id *ent)
     goto cleanup_regions;
   }
 
+  data->iobase = 0;
   /* Inspect PCI BARs and search IORESOURCE_IO */
   for (i=0; i < DEVICE_COUNT_RESOURCE; i++) {
-    data->iobase = 0;
-
     if (pci_resource_len(dev, i) == 0)
       continue;
 
@@ -301,10 +269,16 @@ static int ch368_io_probe(struct pci_dev *dev, const struct pci_device_id *ent)
       data->iolen = pci_resource_len(dev, i);
       pr_info("ch368_io: BAR %d is IO_RESOURCE_IO @ %x!\n", i, data->iobase);
 
-      break;
+      break; // we use the first IO
     }
   }
 
+  if (i == DEVICE_COUNT_RESOURCE) {
+    pr_warn("ch368_io: can't fin IO memory !\n");
+    ret = -ENXIO;
+    goto cleanup_regions;
+  }
+  
   /* Install the irq handler */
   if (dev->pin) {
     ret = request_irq(dev->irq, ch368_io_irq_handler, IRQF_SHARED, "ch368_io", data);
