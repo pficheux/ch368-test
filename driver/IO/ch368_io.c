@@ -255,7 +255,7 @@ static int ch368_io_probe(struct pci_dev *dev, const struct pci_device_id *ent)
 
   data->iobase = 0;
   /* Inspect PCI BARs and search IORESOURCE_IO */
-  for (i=0; i < DEVICE_COUNT_RESOURCE; i++) {
+  for (i = 0; i < DEVICE_COUNT_RESOURCE; i++) {
     if (pci_resource_len(dev, i) == 0)
       continue;
 
