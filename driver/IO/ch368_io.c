@@ -20,7 +20,7 @@
 #include <linux/device.h>	/* class */
 
 MODULE_DESCRIPTION("ch368_io");
-MODULE_AUTHOR("Pierre Ficheux");
+MODULE_AUTHOR("Pierre Ficheux (pierre.ficheux@gmail.com)");
 MODULE_LICENSE("GPL");
 
 #define BUF_SIZE 256

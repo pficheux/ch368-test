@@ -4,6 +4,8 @@
  * # insmod ch368_mem.ko
  * # ./mem_test /dev/ch368_mem0
  *
+ * # echo -n "abcd" > /dev/ch368_mem0
+ *
  */
 
 #include <linux/kernel.h>	/* printk() */
@@ -20,7 +22,7 @@
 #include <linux/device.h>	/* class */
 
 MODULE_DESCRIPTION("ch368_mem");
-MODULE_AUTHOR("Pierre Ficheux");
+MODULE_AUTHOR("Pierre Ficheux (pierre.ficheux@gmail.com)");
 MODULE_LICENSE("GPL");
 
 /*
