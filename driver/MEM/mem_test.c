@@ -8,7 +8,7 @@
 int main (int ac, char **av)
 {
   int fd, i = 0, j;
-  char c = 0x55;
+  unsigned char c = 0x55;
 
   if (ac == 1) {
     fprintf (stderr, "Usage: %s <device-node>\n", av[0]);
@@ -21,23 +21,10 @@ int main (int ac, char **av)
     return 1;
   }
 
-  for (i = 0 ; i < 5 ; i++) {
-    if (write (fd, &c, 1) < 0) {
-      perror ("write");
-      return 1;
-    }
-
-    c++;
+  if (write (fd, &c, 1) < 0) {
+    perror ("write");
+    return 1;
   }
-
-  /*
-  if (read (fd, &c, 1) < 0) {
-      perror ("read");
-      return 1;
-  }
-
-  printf ("c= %02x\n", c & 255);
-  */
 
   close (fd);
   

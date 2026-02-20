@@ -61,10 +61,6 @@ struct ch368_mem_struct {
   u32			mmio_len;
 };
 
-// Works with updated design PCIe design
-#define USE_IRQ
-
-#ifdef USE_IRQ
 /*
  * Event handler
  */
@@ -76,7 +72,6 @@ static irqreturn_t ch368_mem_irq_handler(int irq, void *dev_id)
 
   return IRQ_HANDLED;
 }
-#endif
 
 /*
  * File operations
@@ -105,7 +100,7 @@ static ssize_t ch368_mem_write(struct file *file, const char *buf, size_t count,
 {
   int i, real;
   struct ch368_mem_struct *data = file->private_data;
-  unsigned char *p = (unsigned char *)buf, c;
+  unsigned char *p = (unsigned char *)buf, val;
   
   /* Check for overflow */
   real = min(data->mmio_len - (u64)*ppos, (u64) count);
@@ -115,8 +110,8 @@ static ssize_t ch368_mem_write(struct file *file, const char *buf, size_t count,
     pr_info ("%s: write %x @ ppos= %d\n", __FUNCTION__, *(p+i), (int)*ppos);
     iowrite8(*(p+i), data->mmio + *ppos + i);
 
-    c = ioread8(data->mmio + i + *ppos); 
-    pr_info ("%s: written %x @ ppos %d\n", __FUNCTION__, c, (int)*ppos);
+    val = ioread8(data->mmio + i + *ppos); 
+    pr_info ("%s: written %x @ ppos %d\n", __FUNCTION__, val, (int)*ppos);
   }
   
   *ppos += real;
@@ -239,7 +234,6 @@ static int ch368_mem_probe(struct pci_dev *dev, const struct pci_device_id *ent)
   }
 
   /* Install the irq handler */
-#ifdef USE_IRQ
   if (dev->pin) {
     if (pci_enable_msi (dev))
       pr_warn("ch368_mem: unable to init MSI !\n");
@@ -254,7 +248,6 @@ static int ch368_mem_probe(struct pci_dev *dev, const struct pci_device_id *ent)
   }
   else
     pr_info("ch368_mem: no IRQ!\n");
-#endif
 
   /* Link the new data structure with others */
   list_add_tail(&data->link, &ch368_mem_list);
@@ -291,12 +284,11 @@ static void ch368_mem_remove(struct pci_dev *dev)
 
   pci_release_regions(dev);
 
-#ifdef USE_IRQ
   if (dev->pin) {
     free_irq(dev->irq, data);
     pci_disable_msi(dev);
   }
-#endif
+
   pci_disable_device(dev);
 
   list_del(&data->link);
