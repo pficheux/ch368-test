@@ -278,13 +278,15 @@ static int ch368_io_probe(struct pci_dev *dev, const struct pci_device_id *ent)
     ret = -ENXIO;
     goto cleanup_regions;
   }
-  
+
   /* Install the irq handler */
   if (dev->pin) {
-    ret = request_irq(dev->irq, ch368_io_irq_handler, IRQF_SHARED, "ch368_io", data);
+    if (pci_enable_msi (dev))
+      pr_warn("ch368_mem: unable to init MSI !\n");
+    else 
+      ret = request_irq(dev->irq, ch368_io_irq_handler, 0, "ch368_io", data);
     if (ret < 0) {
       pr_warn("ch368_io: unable to register irq handler\n");
-
       goto cleanup_irq;
     }
   }
@@ -310,8 +312,11 @@ static void ch368_io_remove(struct pci_dev *dev)
 {
   struct ch368_io_struct *data = pci_get_drvdata(dev);
 
-  if (dev->pin)
+  if (dev->pin) {
     free_irq(dev->irq, data);
+    pci_disable_msi(dev);
+  }
+
 
   if (ch368_io_class)
     device_destroy(ch368_io_class, MKDEV(major, data->minor));
