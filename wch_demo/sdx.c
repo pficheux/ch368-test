@@ -1,6 +1,3 @@
-//
-// L1-L4 control using the official driver
-//
 #include <unistd.h>
 #include <errno.h>
 #include <stdint.h>
@@ -79,23 +76,27 @@ int main(int argc, char *argv[])
     printf("membase:%lx\n", membase);
   }
 
-  ret = ch36x_write_io_byte(fd, (uint8_t)0, 0x0f);
-
-  while (1) {
-    mask = 0x01;
+  // SDX
+  #define V 0xfd
   
-    for (i = 0 ; i < 5 ; i++) {
-      printf ("i= %d  writing %02x  %c%c%c%c%c%c%c%c\n", i, ~mask, BYTE_TO_BINARY(mask));
-      ret = ch36x_write_io_byte(fd, (uint8_t)i, ~mask);
-      mask = mask << 1;
-      usleep (500000);
-    }
+  mask = V;
+  
+  while (1) {
+    //    printf ("writing %02x  %c%c%c%c%c%c%c%c\n", mask, BYTE_TO_BINARY(mask));
+    ret = ch36x_write_io_byte(fd, (uint8_t)0xe8, mask);
+    if (mask == V)
+      mask = 0xff;
+    else
+      mask =V;
+
+    usleep (500000);
   }
 
   ret = ch36x_close(fd);
   if (ret != 0) 
     printf("ch36x_close error.\n");
- exit:
+
+exit:
   return ret;
 }
 

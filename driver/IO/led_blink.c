@@ -33,7 +33,10 @@ int main (int ac, char **av)
 
 
   while (1) {
-    /* SDX, SCS, SCL -> offset 0xe8 */
+    if (i == 0)
+      printf ("==> SDX, SCS, SCL\n");
+
+    /* SDX, SCS, SCL -> write @ offset 0xe8 */
     if (lseek (fd, 0xe8, SEEK_SET) < 0) {
       perror ("lseek");
       return 1;
@@ -46,7 +49,8 @@ int main (int ac, char **av)
     else
       printf ("w_value[%d] = %02x\n", i, data[i] & 0xff);
 
-    /* SDX, SCS, SCL -> offset 0xe8 */
+    /* SDX, SCS, SCL -> read @ offset 0xe8 */
+    /*
     if (lseek (fd, 0xe8, SEEK_SET) < 0) {
       perror ("lseek");
       return 1;
@@ -58,12 +62,14 @@ int main (int ac, char **av)
     }
     else
       printf ("r_value[%d] = %02x\n", i, c & 0xff);
-
+    */
+    
     usleep (500000);
 
     i++;
     if (i == sizeof(data)) {
       // L1 -> L4 -> send 0x00 or 0x0f at offset 0
+      printf ("==> L1 -> L4\n");
       if (lseek (fd, 0, SEEK_SET) < 0) {
 	perror ("lseek");
 	return 1;
