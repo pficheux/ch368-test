@@ -23,12 +23,11 @@ int main(int argc, char *argv[])
 {
   int fd, i;
   int ret;
-  char c;
   enum CHIP_TYPE chiptype;
   unsigned long iobase;
   unsigned long membase;
   int irq;
-  uint8_t mask;
+  uint8_t mask, mask2;
 
   fd = ch36x_open(device);
   if (fd < 0) {
@@ -65,6 +64,7 @@ int main(int argc, char *argv[])
     printf("ch36x_get_ioaddr error.\n");
     goto exit;
   }
+
   printf("iobase:%lx\n", iobase);
 
   if (chiptype == CHIP_CH368) {
@@ -76,20 +76,38 @@ int main(int argc, char *argv[])
     printf("membase:%lx\n", membase);
   }
 
+  // L1
+  //  #define V1 0x01
+  // L2
+  //  #define V2 0x02
+    
   // SDX
-  #define V 0xfd
+  #define V1 0x7f
+  // SDA
+  //  #define V2 0xfb
+  // SCS
+  #define V2 0xfd
+  // SCL
+  //#define V2 0xfe
   
-  mask = V;
+  mask = 0xff;
+  mask2 = 0xff;
+  i = 0;
   
   while (1) {
-    //    printf ("writing %02x  %c%c%c%c%c%c%c%c\n", mask, BYTE_TO_BINARY(mask));
+    printf ("writing %02x  %c%c%c%c%c%c%c%c\n", mask, BYTE_TO_BINARY(mask));
     ret = ch36x_write_io_byte(fd, (uint8_t)0xe8, mask);
-    if (mask == V)
-      mask = 0xff;
-    else
-      mask =V;
-
     usleep (500000);
+    if ((i % 2) == 0)
+      mask = V1;
+    else
+      mask = V2;
+
+    // flip flop on L1-L4
+    ret = ch36x_write_io_byte(fd, (uint8_t)0, mask2);
+    mask2 = ~mask2;
+
+    i++;
   }
 
   ret = ch36x_close(fd);
