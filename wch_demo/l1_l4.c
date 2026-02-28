@@ -26,7 +26,6 @@ int main(int argc, char *argv[])
 {
   int fd, i;
   int ret;
-  char c;
   enum CHIP_TYPE chiptype;
   unsigned long iobase;
   unsigned long membase;
