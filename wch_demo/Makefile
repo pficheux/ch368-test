@@ -2,7 +2,7 @@ CC=gcc
 
 CFLAGS= -g -I ../../ch36x_linux/lib/ -Wall
 
-PROGS= l1_l4 flip_flop
+PROGS= l1_l4 flip_flop d0_d3
 
 all: $(PROGS)
 
