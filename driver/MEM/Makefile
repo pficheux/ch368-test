@@ -1,7 +1,7 @@
 KDIR= /lib/modules/$(shell uname -r)/build
 PWD= $(shell pwd)
 
-PROG= mem_test
+PROG= d0_d3
 
 obj-m := ch368_mem.o
 

@@ -119,6 +119,35 @@ static ssize_t ch368_mem_write(struct file *file, const char *buf, size_t count,
   return real;
 }
 
+loff_t ch368_mem_llseek(struct file *file, loff_t off, int whence)
+{
+  loff_t newpos = 0;
+
+  switch(whence) {
+  case 0: /* SEEK_SET */
+    newpos = off;
+    break;
+
+  case 1: /* SEEK_CUR */
+    newpos = file->f_pos + off;
+    break;
+
+  case 2: /* SEEK_END */
+    return -EINVAL;
+    break;
+
+  default: /* can't happen */
+    return -EINVAL;
+  }
+  
+  if (newpos < 0)
+    return -EINVAL;
+
+  file->f_pos = newpos;
+  
+  return newpos;
+}
+
 static int ch368_mem_open(struct inode *inode, struct file *file)
 {
   int minor = MINOR(inode->i_rdev);
@@ -156,6 +185,7 @@ static struct file_operations ch368_mem_fops = {
   .read =	ch368_mem_read,
   .write =	ch368_mem_write,
   .open =	ch368_mem_open,
+  .llseek =	ch368_mem_llseek,
   .release =	ch368_mem_release,
 };
 
