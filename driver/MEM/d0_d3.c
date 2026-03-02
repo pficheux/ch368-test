@@ -1,9 +1,9 @@
+// Send 0xff continuously to D0-D3 with MEM BAR (also works for IO BAR)
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <fcntl.h>
 #include <time.h>
-
 
 int main (int ac, char **av)
 {

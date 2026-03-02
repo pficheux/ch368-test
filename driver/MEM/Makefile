@@ -13,5 +13,5 @@ install:
 
 clean:
 	$(MAKE) -C $(KDIR) M=$(PWD) clean
-	rm -f led_blink *~ $(PROG)
+	rm -f $(PROG) *~ $(PROG)
 

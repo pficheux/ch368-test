@@ -32,6 +32,10 @@ static int major = 0; /* Major number */
 module_param(major, int, 0660);
 MODULE_PARM_DESC(major, "Static major number (none = dynamic)");
 
+static int debug = 0;
+module_param(debug, int, 0660);
+MODULE_PARM_DESC(debug, "Debug mode 0/1");
+
 /*
  * Supported devices
 */
@@ -86,7 +90,8 @@ static ssize_t ch368_io_read(struct file *file, char *buf, size_t count, loff_t 
   /* Check for overflow */
   real = min((int)data->iolen - (int)*ppos, (int)count);
 
-  pr_info ("read offset= %x\n", (int)*ppos);
+  if (debug)
+    pr_info ("read offset= %x\n", (int)*ppos);
   port = data->iobase + *ppos;
 
   /* Copy data from board */
@@ -99,8 +104,9 @@ static ssize_t ch368_io_read(struct file *file, char *buf, size_t count, loff_t 
     if (copy_to_user(buf, kbuf, real))
       return -EFAULT;
   }
-  
-  pr_info("ch368_io: read %d/%d chars at offset %d from I/O memory\n", real, (int)count, (int)*ppos);
+
+  if (debug)
+    pr_info("ch368_io: read %d/%d chars at offset %d from I/O memory\n", real, (int)count, (int)*ppos);
 
   return real;
 }
@@ -114,10 +120,12 @@ static ssize_t ch368_io_write(struct file *file, const char *buf, size_t count, 
   
   /* Check for overflow */
   real = min((int)data->iolen - (int)*ppos, (int)count);
-  pr_info ("real= %d\n", real);
+  if (debug)
+    pr_info ("real= %d\n", real);
   
   // set base offset from ppos
-  pr_info ("write offset= %x\n", (int)*ppos);
+  if (debug)
+    pr_info ("write offset= %x\n", (int)*ppos);
   port = data->iobase + *ppos;
     
   /* Copy data to board */
@@ -125,11 +133,13 @@ static ssize_t ch368_io_write(struct file *file, const char *buf, size_t count, 
     return -EFAULT;
 
   for (i = 0; i < real; i += sizeof(char)) {
-    pr_info ("writing 0x%x @ offset %d\n", *(kbuf+i), i);
+    if (debug)
+      pr_info ("writing 0x%x @ offset %d\n", *(kbuf+i), i);
     outb(*(kbuf+i), port + i);
   }
-  
-  pr_info("ch368_io: write %d/%d chars at offset %d from I/O memory\n", real, (int)count, (int)*ppos);
+
+  if (debug)
+    pr_info("ch368_io: write %d/%d chars at offset %d from I/O memory\n", real, (int)count, (int)*ppos);
 
   return real;
 }

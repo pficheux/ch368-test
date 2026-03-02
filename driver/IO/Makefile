@@ -3,7 +3,9 @@ PWD= $(shell pwd)
 
 obj-m := ch368_io.o
 
-all: led_blink
+PROG= led_blink
+
+all: $(PROG)
 	$(MAKE) -C $(KDIR) M=$(PWD) modules
 
 install:
@@ -11,5 +13,5 @@ install:
 
 clean:
 	$(MAKE) -C $(KDIR) M=$(PWD) clean
-	rm -f led_blink *~
+	rm -f $(PROG) *~
 

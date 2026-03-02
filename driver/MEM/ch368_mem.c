@@ -32,6 +32,10 @@ static int major = 0; /* Major number */
 module_param(major, int, 0660);
 MODULE_PARM_DESC(major, "Static major number (none = dynamic)");
 
+static int debug = 0;
+module_param(debug, int, 0660);
+MODULE_PARM_DESC(debug, "Debug mode 0/1");
+
 // Driver class in /sys
 static struct class *ch368_mem_class;
 
@@ -87,8 +91,9 @@ static ssize_t ch368_mem_read(struct file *file, char *buf, size_t count, loff_t
  
   // Read data 
   for (i = 0 ; i < real ; i++) {
-    *(p+i) = ioread8(data->mmio+ i + *ppos); 
-    pr_info ("%s: read %x @ %p (ppos= %lld)\n", __FUNCTION__, *(p+i), data->mmio+ i + *ppos, *ppos);
+    *(p+i) = ioread8(data->mmio+ i + *ppos);
+    if (debug)
+      pr_info ("%s: read %x @ %p (ppos= %lld)\n", __FUNCTION__, *(p+i), data->mmio+ i + *ppos, *ppos);
   }
 
   *ppos += real;
@@ -107,11 +112,13 @@ static ssize_t ch368_mem_write(struct file *file, const char *buf, size_t count,
 
   // Write data
   for (i = 0 ; i < real ; i++) {
-    pr_info ("%s: write %x @ ppos= %d\n", __FUNCTION__, *(p+i), (int)*ppos);
+    if (debug)
+      pr_info ("%s: write %x @ ppos= %d\n", __FUNCTION__, *(p+i), (int)*ppos);
     iowrite8(*(p+i), data->mmio + *ppos + i);
 
-    val = ioread8(data->mmio + i + *ppos); 
-    pr_info ("%s: written %x @ ppos %d\n", __FUNCTION__, val, (int)*ppos);
+    val = ioread8(data->mmio + i + *ppos);
+    if (debug)
+      pr_info ("%s: written %x @ ppos %d\n", __FUNCTION__, val, (int)*ppos);
   }
   
   *ppos += real;
