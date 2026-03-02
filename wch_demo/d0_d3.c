@@ -1,3 +1,4 @@
+// Send 0xff continuously to D0-D3
 #include <unistd.h>
 #include <errno.h>
 #include <stdint.h>
