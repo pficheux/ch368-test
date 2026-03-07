@@ -3,7 +3,7 @@ PWD= $(shell pwd)
 
 obj-m := ch368_io.o
 
-PROG= led_blink
+PROG= led_blink d0_d3
 
 all: $(PROG)
 	$(MAKE) -C $(KDIR) M=$(PWD) modules

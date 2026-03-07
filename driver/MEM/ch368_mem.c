@@ -1,11 +1,7 @@
 /*
  * PCI demo driver (MEM based) for CH368 board
- * 
- * # insmod ch368_mem.ko
- * # ./mem_test /dev/ch368_mem0
- *
- * # echo -n "ab" > /dev/ch368_mem0
- *
+ $
+ $ # ./d0_d3 /dev/ch368_mem -> led blinking
  */
 
 #include <linux/kernel.h>	/* printk() */

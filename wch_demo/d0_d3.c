@@ -22,7 +22,7 @@ static const char *device = "/dev/ch36xpci0";
 
 int main(int argc, char *argv[])
 {
-  int fd;
+  int fd, delay = 0;
   int ret;
   enum CHIP_TYPE chiptype;
   unsigned long iobase;
@@ -76,14 +76,22 @@ int main(int argc, char *argv[])
     }
     printf("membase:%lx\n", membase);
   }
+  
+  if (argc > 1) {
+    delay = atoi(argv[1]);
+    printf ("Using a %d us delay\n", delay);
+  }
+  else
+    printf ("Using no delay !\n");
 
-  mask = 0xff;
+  mask = 0x00;
 
-  // Write without sleep
+  // Write without delay
   while (1) {
     ret = ch36x_write_io_byte(fd, (uint8_t)0, mask);
     mask = ~mask;
-    printf ("mask= %x\n", mask);
+    if (delay)
+      usleep (delay);
   }
 
   ret = ch36x_close(fd);

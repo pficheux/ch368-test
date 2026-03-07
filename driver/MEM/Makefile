@@ -1,8 +1,6 @@
 KDIR= /lib/modules/$(shell uname -r)/build
 PWD= $(shell pwd)
 
-PROG= d0_d3
-
 obj-m := ch368_mem.o
 
 all: $(PROG)
@@ -13,5 +11,5 @@ install:
 
 clean:
 	$(MAKE) -C $(KDIR) M=$(PWD) clean
-	rm -f $(PROG) *~ $(PROG)
+	rm -f $(PROG) *~
 
