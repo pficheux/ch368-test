@@ -144,7 +144,7 @@ static ssize_t ch368_io_write(struct file *file, const char *buf, size_t count, 
   return real;
 }
 
-loff_t ch368_io_llseek(struct file *file, loff_t off, int whence)
+static loff_t ch368_io_llseek(struct file *file, loff_t off, int whence)
 {
   loff_t newpos = 0;
 
